@@ -11,21 +11,25 @@ int main(){
 	}
 
 	char buf[512];
-	int byteread, count=0 ;
-	byteread = read(fd1, buf, sizeof(buf));
-	printf("count : %d\n", count);
-	printf("buf = \n%s\n\n", buf);
-	while(byteread!=0){
-		char buf[512];
-		byteread = read(fd1,buf,sizeof(buf));
-		count++;
-		printf("count : %d\n", count);
-        	printf("buf = \n%s\n\n", buf);
+	int count=0 ;
+	int byteread = read(fd1, buf, sizeof(buf));
+	if(byteread == 0){
+		printf("!!! emply file !!!\n");
+		return 1;
+	}
+	byteread = 1;
 
-		if(byteread==0){
-			printf("@@@ end @@@");
-			break;
+	while(byteread != 0){
+	
+		memset(buf, 0, sizeof(buf));
+		byteread = read(fd1, buf, sizeof(buf));
+		
+		if(byteread == 0){
+			printf("\n@@@ end @@@\n");
+		}else{
+			printf("buf = \n%s\n=====================\n", buf);
 		}
+
 	}
 
 	return 0;
