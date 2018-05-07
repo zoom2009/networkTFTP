@@ -17,6 +17,7 @@ int main(){
 		printf("!!! emply file !!!\n");
 		return 1;
 	}
+	printf("buf = \n%s\n=====================\n", buf);
 	byteread = 1;
 
 	while(byteread != 0){
