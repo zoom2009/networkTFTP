@@ -8,12 +8,12 @@
 
 int main(){
 
-	char rd[139], filename[128], mode[9];
+	char buf[512], rd[139], filename[128], mode[9];
 	short int opcode, tmp;
 	int len;
 
 	opcode = 1;
-	strcpy(filename, "a.txt");
+	strcpy(filename, "read.txt");
 	strcpy(mode, "octet");
 
 	len = 2 + strlen(filename) + 1 + strlen(mode) + 1;
@@ -41,6 +41,11 @@ int main(){
 	server_address.sin_addr.s_addr = INADDR_ANY;
 
 	sendto(client_socket, rd, len, 0, (struct sockaddr*)&server_address, sizeof(server_address));
+	
+	int r = recvfrom(client_socket, buf, 512, 0 ,(struct sockaddr*)0, (int*)0);
+
+	printf("is recv %s\n", buf);
+
 	close(client_socket);
 	
 

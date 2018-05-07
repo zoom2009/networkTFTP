@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -33,24 +34,54 @@ int main(){
 	socklen_t addr_size = sizeof(client_address);
 	int r = recvfrom(server_socket, rd, 139, 0, (struct sockaddr*)&client_address, &addr_size);
 	
-	printf("Before\n");
 	memcpy(&tmp, rd, 2);
 	opcode = ntohs(tmp);
-	printf("opcode = %d\n", opcode);
 
 	memcpy(filename, rd+2, strlen(rd+2)+1);
-	printf("filename = %s\n", filename);
 	char myFilename[128];
 	strcpy(myFilename, filename);
 
 	memcpy(mode, rd+2+strlen(filename)+1, r-strlen(filename)+3);
-	printf("mode = %s\n", mode);
 
-	printf("\nAfter\n");
-	printf("opcode = %d\n", opcode);
-	printf("filename = %s\n", filename);
-	printf("myFilename = %s\n", myFilename);
-	printf("mode = %s\n", mode);
+	//printf("\nAfter\n");
+	//printf("opcode = %d\n", opcode);
+	//printf("filename = %s\n", filename);
+	//printf("myFilename = %s\n", myFilename);
+	//printf("mode = %s\n", mode);
+
+	if(opcode==1){ // read request
+		int myFile = open("read.txt", O_RDONLY);
+		if(myFile < 0){
+			printf("File not found\n");
+		}
+		char buf[512];
+		int byteread = read(myFile, buf, sizeof(buf));
+		if(byteread == 0){
+			printf("Emply file\n");
+		}
+		printf("is read : \n%s", buf);
+		sendto(server_socket, buf, byteread, 0, (struct sockaddr*)&client_address, addr_size);
+		
+		byteread = 1;
+		
+		/*
+		while(byteread != 0){
+			
+			memset(buf, 0, sizeof(buf));
+			byteread = read(myFile, buf, sizeof(buf));
+
+			if(byteread == 0){
+				printf("end of file");
+			}else{
+				sendto(server_socket, buf, byteread, 0, (struct sockaddr*)&client_address, addr_size);
+
+			}
+
+		}
+		*/
+
+
+	}
 
 	return 0;
 }
