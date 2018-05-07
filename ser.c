@@ -19,7 +19,6 @@ void decodeRW(int r, char code[139],short int *opcode, char filename[128], char 
 	memcpy(filename, temp, strlen(temp)+1);
 
 	*opcode = ntohs(tmp);
-	//return ntohs(tmp);
 }
 
 void encodeDP(char dp[516], short int no, char data[512]){
@@ -61,7 +60,6 @@ int main(){
 		char dp[516];
 		encodeDP(dp, 1, buf);
 
-		//printf("dp[5] = %c\n", dp[5]);
 		sendto(server_socket, dp, byteread, 0, (struct sockaddr*)&client_address, addr_size);
 
 	}

@@ -20,6 +20,15 @@ int encodeRW(char bd[139], short int opcode, char filename[128], char mode[9]){
 	return 2+strlen(filename)+1+strlen(mode)+1;
 }
 
+void decodeDP(char dp[516], int r, short int *opcode, short int *blockno, char data[512]){
+	short int tmp;
+	memcpy(&tmp, dp, 2);
+	*opcode = ntohs(tmp);
+	memcpy(&tmp, dp+2, 2);
+	*blockno = ntohs(tmp);
+	memcpy(data, dp+4, r-4);
+}
+
 int main(){
 
 	int client_socket = socket(AF_INET, SOCK_DGRAM, 0);
@@ -35,7 +44,17 @@ int main(){
 
 	sendto(client_socket, bd, len, 0, (struct sockaddr*)&server_address, sizeof(server_address));
 
-	close(client_socket);
+	char buf[516];
+	int r = recvfrom(client_socket, buf, 516, 0, (struct sockaddr*)0, (int*)0);
+	short int opcode, blockno; 
+	char data[512];
+	
+	decodeDP(buf, r, &opcode, &blockno, data);
+	printf("recv : \n%d:%d:%s\n", opcode, blockno, data);
 
+
+
+	close(client_socket);
+	
 	return 0;
 }
