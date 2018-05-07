@@ -29,6 +29,15 @@ void encodeDP(char dp[516], short int no, char data[512]){
 	memcpy(dp+4, data, strlen(data)+1);
 }
 
+void decodeACK(char code[4], short int *opcode, short int *blockno){
+	short int tmp;
+
+	memcpy(&tmp, code, 2);
+	*opcode = ntohs(tmp);
+	memcpy(&tmp, code+2, 2);
+	*blockno = ntohs(tmp);
+}
+
 int main(){
 
 	int server_socket = server_socket = socket(AF_INET, SOCK_DGRAM, 0);
@@ -62,6 +71,12 @@ int main(){
 
 		sendto(server_socket, dp, byteread, 0, (struct sockaddr*)&client_address, addr_size);
 
+		char ack[4];
+		r = recvfrom(server_socket, ack, 4, 0, (struct sockaddr*)&client_address, &addr_size);
+		
+		short int blockno;
+		decodeACK(ack, &opcode, &blockno);
+		printf("opcode = %d, blockno = %d\n", opcode, blockno);
 	}
 
 

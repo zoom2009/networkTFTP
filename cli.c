@@ -30,6 +30,14 @@ void decodeDP(char dp[516], int r, short int *opcode, short int *blockno, char d
 	memcpy(data, dp+4, r-4);
 }
 
+void encodeACK(char ack[4], short int opcode, short blockno){	
+	short int tmp;
+	tmp = htons(opcode);
+	memcpy(ack, &tmp, 2);
+	tmp = htons(blockno);
+	memcpy(ack+2, &tmp, 2);
+}
+
 int main(){
 
 	int client_socket = socket(AF_INET, SOCK_DGRAM, 0);
@@ -56,9 +64,13 @@ int main(){
 	if(opcode == 3){
 		int fd = open("out.txt", O_WRONLY);
 		int w = write(fd, data, r-4);
-		printf("w = %d\n", w);
-	}
+		//printf("w = %d\n", w);
+		char ack[4];
+		encodeACK(ack, 4, 1);
+		sendto(client_socket, ack, 4, 0, (struct sockaddr*)&server_address, sizeof(server_address));
 
+	}
+	
 	close(client_socket);
 
 	return 0;
