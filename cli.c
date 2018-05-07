@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -51,10 +52,14 @@ int main(){
 	
 	decodeDP(buf, r, &opcode, &blockno, data);
 	printf("recv : \n%d:%d:%s\n", opcode, blockno, data);
-
-
+	
+	if(opcode == 3){
+		int fd = open("out.txt", O_WRONLY);
+		int w = write(fd, data, r-4);
+		printf("w = %d\n", w);
+	}
 
 	close(client_socket);
-	
+
 	return 0;
 }
