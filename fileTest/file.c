@@ -17,7 +17,11 @@ int main(){
 		printf("!!! emply file !!!\n");
 		return 1;
 	}
+	printf("byteread = %d\n", byteread);
 	printf("buf = \n%s\n=====================\n", buf);
+	int fd2 = open("a2.txt", O_WRONLY);
+	int w = write(fd2, buf, byteread);
+	printf("w = %d\n", w);
 	byteread = 1;
 
 	while(byteread != 0){
@@ -29,6 +33,8 @@ int main(){
 			printf("\n@@@ end @@@\n");
 		}else{
 			printf("buf = \n%s\n=====================\n", buf);
+			w = write(fd2, buf, byteread);
+			printf("\n\nw = %d\n", w);
 		}
 
 	}
