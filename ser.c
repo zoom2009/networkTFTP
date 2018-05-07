@@ -7,21 +7,32 @@
 #include <stdlib.h>
 #include <string.h>
 
+//TFTP Server
+
+void decodeRW(int r, char code[139],short int *opcode, char filename[128], char mode[9]){
+
+	short int tmp;
+	char temp[128];
+	memcpy(&tmp, code, 2);
+	memcpy(temp, code+2, strlen(code+2)+1);
+	memcpy(mode, code+2+strlen(temp)+1, r-strlen(temp)+3);
+	memcpy(filename, temp, strlen(temp)+1);
+
+	*opcode = ntohs(tmp);
+	//return ntohs(tmp);
+}
+
+void encodeDP(char dp[516], short int no, char data[512]){
+	short int tmp = htons(3);
+	short int tmno = htons(no);
+	memcpy(dp, &tmp, 2);
+	memcpy(dp+2, &tmno, 2);
+	memcpy(dp+4, data, strlen(data)+1);
+}
+
 int main(){
-	
-	char rd[139], filename[128], mode[9];
-	short int opcode, tmp;
-	int len;
 
-	int server_socket;
-	server_socket = socket(AF_INET, SOCK_DGRAM, 0);
-
-	if(server_socket == -1){
-		printf("Fail to create server socket\n");
-		exit(1);
-	}else{
-		printf("Server socket is created\n");
-	}
+	int server_socket = server_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
 	struct sockaddr_in server_address, client_address;
 	bzero((char*)&server_address, sizeof(server_address));
@@ -32,56 +43,29 @@ int main(){
 	bind(server_socket, (struct sockaddr*)&server_address, sizeof(server_address));
 
 	socklen_t addr_size = sizeof(client_address);
+	char rd[139];
 	int r = recvfrom(server_socket, rd, 139, 0, (struct sockaddr*)&client_address, &addr_size);
-	
-	memcpy(&tmp, rd, 2);
-	opcode = ntohs(tmp);
 
-	memcpy(filename, rd+2, strlen(rd+2)+1);
-	char myFilename[128];
-	strcpy(myFilename, filename);
+	char filename[128], mode[9];
+	short int opcode;
+	decodeRW(r, rd, &opcode, filename, mode);
+	printf("opcode = %d\n", opcode);
 
-	memcpy(mode, rd+2+strlen(filename)+1, r-strlen(filename)+3);
-
-	//printf("\nAfter\n");
-	//printf("opcode = %d\n", opcode);
-	//printf("filename = %s\n", filename);
-	//printf("myFilename = %s\n", myFilename);
-	//printf("mode = %s\n", mode);
-
-	if(opcode==1){ // read request
-		int myFile = open("read.txt", O_RDONLY);
-		if(myFile < 0){
-			printf("File not found\n");
-		}
+	if(opcode == 1){
+		int fd = open(filename, O_RDONLY);
 		char buf[512];
-		int byteread = read(myFile, buf, sizeof(buf));
-		if(byteread == 0){
-			printf("Emply file\n");
+		int byteread = read(fd, buf, sizeof(buf));
+		if(byteread==0){
+			//emply file	
 		}
-		printf("is read : \n%s", buf);
-		sendto(server_socket, buf, byteread, 0, (struct sockaddr*)&client_address, addr_size);
-		
-		byteread = 1;
-		
-		/*
-		while(byteread != 0){
-			
-			memset(buf, 0, sizeof(buf));
-			byteread = read(myFile, buf, sizeof(buf));
+		char dp[516];
+		encodeDP(dp, 1, buf);
 
-			if(byteread == 0){
-				printf("end of file");
-			}else{
-				sendto(server_socket, buf, byteread, 0, (struct sockaddr*)&client_address, addr_size);
-
-			}
-
-		}
-		*/
-
+		//printf("dp[5] = %c\n", dp[5]);
+		sendto(server_socket, dp, byteread, 0, (struct sockaddr*)&client_address, addr_size);
 
 	}
+
 
 	return 0;
 }
