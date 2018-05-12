@@ -68,10 +68,13 @@ int main(){
 		short int blockno = 1;
 		int byteread;
 		while((byteread = read(fd, buf, sizeof(buf)))!=0){
-			
+		
 			encodeDP(dp, blockno, buf);
-			sendto(server_socket, dp, byteread, 0, (struct sockaddr*)&client_address, addr_size);
+			sendto(server_socket, dp, byteread+4, 0, (struct sockaddr*)&client_address, addr_size);
+			
 			printf("send dp block %d\n", blockno);
+			printf("=========data===========\n%s\n============\n", buf);
+			memset(buf, 0, sizeof(buf));
 
 			char ack[4];
 			short int opcode2;
@@ -86,7 +89,7 @@ int main(){
 			}
 			
 		}
-		
+	
 	}
 
 

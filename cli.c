@@ -27,7 +27,7 @@ void decodeDP(char dp[516], int r, short int *opcode, short int *blockno, char d
 	*opcode = ntohs(tmp);
 	memcpy(&tmp, dp+2, 2);
 	*blockno = ntohs(tmp);
-	memcpy(data, dp+4, r-4);
+	memcpy(data, dp+4, r-4); 
 }
 
 void encodeACK(char ack[4], short blockno){	
@@ -57,8 +57,10 @@ int main(){
 	char dp[516], data[512];
 	short int opcode, blockno;
 	int r = recvfrom(client_socket, dp, 516, 0, (struct sockaddr*)0, (int*)0);
+	printf("r = %d\n",r);
 	decodeDP(dp, r, &opcode, &blockno, data);
 	printf("got dp block = %d\n", blockno);
+	printf("========data==============\n%s\n===============\n", data);
 	if(opcode==5){
 		//err message
 	}else if(opcode==3){
@@ -69,24 +71,30 @@ int main(){
 		if(fd<0){
 			//create file
 		}
+		int i=0;
 		while(1){
+			//printf("r = %d\n", r);
 			write(fd, data, r-4);
+			//memset(data, 0, sizeof(data));
 			char ack[4];
 			encodeACK(ack, blockno2);
 			sendto(client_socket, ack, 4, 0, (struct sockaddr*)&server_address, sizeof(server_address));
 			printf("send ack block %d\n", blockno2);
-			
+		
 			r = recvfrom(client_socket, dp, 516, 0, (struct sockaddr*)0, (int*)0);
+			printf("r = %d\n", r);
 			decodeDP(dp, r, &opcode2, &blockno3, data);
 			printf("got dp block = %d\n", blockno3);
+			printf("========data==============\n%s\n===============\n", data);
 			if(opcode2==3){
 				blockno2++;
 			}else if(opcode2==5){
 				//error
 			}
+			i++;
 		}
 	}
-	
+
 
 	close(client_socket);
 
