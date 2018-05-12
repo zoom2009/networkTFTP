@@ -72,6 +72,11 @@ int main(){
 			encodeDP(dp, blockno, buf);
 			sendto(server_socket, dp, byteread+4, 0, (struct sockaddr*)&client_address, addr_size);
 			
+			if(byteread<512){
+				printf("\n\nDONE\n\n");
+				break;
+			}
+
 			printf("send dp block %d\n", blockno);
 			printf("=========data===========\n%s\n============\n", buf);
 			memset(buf, 0, sizeof(buf));

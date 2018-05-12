@@ -71,10 +71,13 @@ int main(){
 		if(fd<0){
 			//create file
 		}
-		int i=0;
 		while(1){
 			//printf("r = %d\n", r);
 			write(fd, data, r-4);
+			if(r<512){
+				printf("\n\nDONE\n\n");
+				break;
+			}
 			//memset(data, 0, sizeof(data));
 			char ack[4];
 			encodeACK(ack, blockno2);
@@ -91,7 +94,6 @@ int main(){
 			}else if(opcode2==5){
 				//error
 			}
-			i++;
 		}
 	}
 
