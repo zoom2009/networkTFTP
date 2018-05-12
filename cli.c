@@ -30,9 +30,9 @@ void decodeDP(char dp[516], int r, short int *opcode, short int *blockno, char d
 	memcpy(data, dp+4, r-4);
 }
 
-void encodeACK(char ack[4], short int opcode, short blockno){	
+void encodeACK(char ack[4], short blockno){	
 	short int tmp;
-	tmp = htons(opcode);
+	tmp = htons(4);
 	memcpy(ack, &tmp, 2);
 	tmp = htons(blockno);
 	memcpy(ack+2, &tmp, 2);
@@ -52,25 +52,42 @@ int main(){
         int len = encodeRW(bd, 1, "read.txt", "octet");
 
 	sendto(client_socket, bd, len, 0, (struct sockaddr*)&server_address, sizeof(server_address));
+	printf("send read req\n");
 
-	char buf[516];
-	int r = recvfrom(client_socket, buf, 516, 0, (struct sockaddr*)0, (int*)0);
-	short int opcode, blockno; 
-	char data[512];
-	
-	decodeDP(buf, r, &opcode, &blockno, data);
-	printf("recv : \n%d:%d:%s\n", opcode, blockno, data);
-	
-	if(opcode == 3){
-		int fd = open("out.txt", O_WRONLY);
-		int w = write(fd, data, r-4);
-		//printf("w = %d\n", w);
-		char ack[4];
-		encodeACK(ack, 4, 1);
-		sendto(client_socket, ack, 4, 0, (struct sockaddr*)&server_address, sizeof(server_address));
-
+	char dp[516], data[512];
+	short int opcode, blockno;
+	int r = recvfrom(client_socket, dp, 516, 0, (struct sockaddr*)0, (int*)0);
+	decodeDP(dp, r, &opcode, &blockno, data);
+	printf("got dp block = %d\n", blockno);
+	if(opcode==5){
+		//err message
+	}else if(opcode==3){
+		int fd = open("myFile.txt", O_WRONLY);
+		short int blockno2 = 1;
+		short int blockno3;
+		short int opcode2;
+		if(fd<0){
+			//create file
+		}
+		while(1){
+			write(fd, data, r-4);
+			char ack[4];
+			encodeACK(ack, blockno2);
+			sendto(client_socket, ack, 4, 0, (struct sockaddr*)&server_address, sizeof(server_address));
+			printf("send ack block %d\n", blockno2);
+			
+			r = recvfrom(client_socket, dp, 516, 0, (struct sockaddr*)0, (int*)0);
+			decodeDP(dp, r, &opcode2, &blockno3, data);
+			printf("got dp block = %d\n", blockno3);
+			if(opcode2==3){
+				blockno2++;
+			}else if(opcode2==5){
+				//error
+			}
+		}
 	}
 	
+
 	close(client_socket);
 
 	return 0;

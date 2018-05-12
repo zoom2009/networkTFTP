@@ -57,26 +57,36 @@ int main(){
 	char filename[128], mode[9];
 	short int opcode;
 	decodeRW(r, rd, &opcode, filename, mode);
-	printf("opcode = %d\n", opcode);
+	printf("got RW opcode = %d\n", opcode);
 
 	if(opcode == 1){
 		int fd = open(filename, O_RDONLY);
-		char buf[512];
-		int byteread = read(fd, buf, sizeof(buf));
-		if(byteread==0){
-			//emply file	
+		if(fd<0){
+			//file not found
 		}
-		char dp[516];
-		encodeDP(dp, 1, buf);
+		char buf[512], dp[516];
+		short int blockno = 1;
+		int byteread;
+		while((byteread = read(fd, buf, sizeof(buf)))!=0){
+			
+			encodeDP(dp, blockno, buf);
+			sendto(server_socket, dp, byteread, 0, (struct sockaddr*)&client_address, addr_size);
+			printf("send dp block %d\n", blockno);
 
-		sendto(server_socket, dp, byteread, 0, (struct sockaddr*)&client_address, addr_size);
-
-		char ack[4];
-		r = recvfrom(server_socket, ack, 4, 0, (struct sockaddr*)&client_address, &addr_size);
+			char ack[4];
+			short int opcode2;
+			short int blockno2;
+			recvfrom(server_socket, ack, 4, 0, (struct sockaddr*)&client_address, &addr_size);
+			decodeACK(ack, &opcode2, &blockno2);
+			printf("got ack block %d\n", blockno2);
+			if(opcode2==4){
+				blockno++;
+			}else if(opcode==5){
+				//error
+			}
+			
+		}
 		
-		short int blockno;
-		decodeACK(ack, &opcode, &blockno);
-		printf("opcode = %d, blockno = %d\n", opcode, blockno);
 	}
 
 
