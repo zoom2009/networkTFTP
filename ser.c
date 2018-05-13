@@ -21,6 +21,12 @@ void decodeRW(int r, char code[139],short int *opcode, char filename[128], char 
 	*opcode = ntohs(tmp);
 }
 
+int checkOpcode(char blockIN[]){
+	short int tmp;
+	memcpy(&tmp, blockIN, 2);
+	return ntohs(tmp);
+}
+
 void encodeDP(char dp[516], short int no, char data[512]){
 	short int tmp = htons(3);
 	short int tmno = htons(no);
@@ -56,7 +62,14 @@ int main(){
 
 	char filename[128], mode[9];
 	short int opcode;
-	decodeRW(r, rd, &opcode, filename, mode);
+
+	if(checkOpcode(rd)==1 || checkOpcode(rd)==2){
+		decodeRW(r, rd, &opcode, filename, mode);
+	}else if(checkOpcode(rd)==5){
+		//error
+		printf("!!!got Error Message!!!\n");
+		return 1;
+	}
 	printf("got RW opcode = %d\n", opcode);
 
 	if(opcode == 1){
@@ -85,14 +98,15 @@ int main(){
 			short int opcode2;
 			short int blockno2;
 			recvfrom(server_socket, ack, 4, 0, (struct sockaddr*)&client_address, &addr_size);
-			decodeACK(ack, &opcode2, &blockno2);
-			printf("got ack block %d\n", blockno2);
-			if(opcode2==4){
-				blockno++;
-			}else if(opcode==5){
+			if(checkOpcode(ack)==5){
 				//error
+				printf("!!!got Error Message!!!\n");
+				return 1;
+			}else if(checkOpcode(ack)==4){
+				decodeACK(ack, &opcode2, &blockno2);
+				printf("got ack block %d\n", blockno2);
+				blockno++;
 			}
-			
 		}
 	
 	}
