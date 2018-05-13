@@ -9,6 +9,17 @@
 
 //TFTP Client
 
+void encodeErr(char ep[258], char errMessage[256]){
+        short int tmp = htons(5);
+        memcpy(ep, &tmp, 2);
+        memcpy(ep+2, errMessage, strlen(errMessage)+1);
+}
+
+void decodeErr(int r, char code[258], char errMessage[256]){
+        memcpy(errMessage, code+2, r-2);
+}
+
+
 void decodeDP(char dp[516], int r, short int *opcode, short int *blockno, char data[512]){
 	short int tmp;
 	memcpy(&tmp, dp, 2);
