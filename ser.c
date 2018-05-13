@@ -9,14 +9,27 @@
 
 //TFTP Server
 
-void encodeErr(char ep[258], char errMessage[256]){
+void encodeErr(char ep[4], short int errMessage){
 	short int tmp = htons(5);
 	memcpy(ep, &tmp, 2);
-	memcpy(ep+2, errMessage, strlen(errMessage)+1);
+	tmp = htons(errMessage);
+	memcpy(ep+2, &errMessage, 2);
 }
 
-void decodeErr(int r, char code[258], char errMessage[256]){
-	memcpy(errMessage, code+2, r-2);
+void decodeErr(int r, char code[], char errMessage[128]){
+	short int tmp, en ;
+	memcpy(&tmp, code+2, 2);
+	en = ntohs(tmp); 
+	switch(en){
+		case 0 : strcpy(errMessage, "Not defined"); 		break;
+		case 1 : strcpy(errMessage, "File not found"); 		break;
+		case 2 : strcpy(errMessage, "Access violation"); 	break;
+		case 3 : strcpy(errMessage, "Disk full"); 		break;
+		case 4 : strcpy(errMessage, "Illegal TFTP operation"); 	break;
+		case 5 : strcpy(errMessage, "Unknow port"); 		break;
+		case 6 : strcpy(errMessage, "File already exists"); 	break;
+		case 7 : strcpy(errMessage, "No such user"); 		break;
+	}
 }
 
 void decodeRW(int r, char code[139],short int *opcode, char filename[128], char mode[9]){
@@ -77,7 +90,9 @@ int main(){
 		decodeRW(r, rd, &opcode, filename, mode);
 	}else if(checkOpcode(rd)==5){
 		//error
-		printf("!!!got Error Message!!!\n");
+		char errMessage[128];
+		decodeErr(r, rd, errMessage);
+		printf("!!! got err message : %s!!!\n", errMessage);
 		return 1;
 	}
 	printf("got RW opcode = %d\n", opcode);
@@ -85,7 +100,10 @@ int main(){
 	if(opcode == 1){
 		int fd = open(filename, O_RDONLY);
 		if(fd<0){
-			//file not found
+			//send err file not found
+			char ep[4];
+                	encodeErr(ep, 1);
+			sendto(server_socket, ep, 4, 0, (struct sockaddr*)&client_address, addr_size);
 		}
 		char buf[512], dp[516];
 		short int blockno = 1;
@@ -110,7 +128,9 @@ int main(){
 			recvfrom(server_socket, ack, 4, 0, (struct sockaddr*)&client_address, &addr_size);
 			if(checkOpcode(ack)==5){
 				//error
-				printf("!!!got Error Message!!!\n");
+				char errMessage[128];
+                		decodeErr(r, ack, errMessage);
+ 		                printf("!!! got err message : %s!!!\n", errMessage);
 				return 1;
 			}else if(checkOpcode(ack)==4){
 				decodeACK(ack, &opcode2, &blockno2);
