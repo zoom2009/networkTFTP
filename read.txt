@@ -1,0 +1,23 @@
+1The functions fgets() reads up to n-1 characters from the input 
+stream referenced by fp. It copies the read string into the 
+buffer buf, appending a null character to terminate the string.
+
+2If this function encounters a newline character '\n' or the end 
+of the file EOF before they have read the maximum number of 
+characters, then it returns only the characters read up to that 
+point including the new line character. You can also use int 
+fscanf(FILE *fp, const char *format, ...) function to read 
+strings from a file, but it stops reading after encountering the 
+first space character.
+
+2.5point including the new line character. You can also use int
+fscanf(FILE *fp, const char *format, ...) function to read
+strings from a file, but it stops reading after encountering the
+first spac.
+
+
+3Let's see a little more in detail about what happened here. 
+First, fscanf() read just This because after that, it encountered 
+a space, second call is for fgets() which reads the remaining 
+line till it encountered end of line. Finally, the last call 
+fgets() reads the second line completely. END12345!
