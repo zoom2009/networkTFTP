@@ -9,6 +9,36 @@
 
 //TFTP Server
 
+int isTimeout = -1;
+
+static void timeOut(int id){
+	printf("!!!isTimeout!!!\n");
+	isTimeout = 1;
+}
+static void goNext(int id){
+	//printf("goNext\n");
+}
+
+void timeW8(){
+	int p;
+        char buf[100];
+        struct sigaction act;
+        act.sa_handler=timeOut;
+        sigemptyset(&act.sa_mask);
+        act.sa_flags=0;
+        sigaction(SIGALRM,&act,0);
+}
+
+void timeW82(){
+        int p;
+        char buf[100];
+        struct sigaction act;
+        act.sa_handler=goNext;
+        sigemptyset(&act.sa_mask);
+        act.sa_flags=0;
+        sigaction(SIGALRM,&act,0);
+}
+
 void encodeErr(char ep[4], short int errMessage){
 	short int tmp = htons(5);
 	memcpy(ep, &tmp, 2);
@@ -83,6 +113,16 @@ int main(){
 	char rd[139];
 	int r = recvfrom(server_socket, rd, 139, 0, (struct sockaddr*)&client_address, &addr_size);
 
+	//checkTimeout
+	timeW8();
+        alarm(5);
+        timeW82();
+        alarm(1);
+        if(isTimeout==1){
+               return 1;
+        }
+
+
 	char filename[128], mode[9];
 	short int opcode;
 
@@ -126,6 +166,17 @@ int main(){
 			short int opcode2;
 			short int blockno2;
 			recvfrom(server_socket, ack, 4, 0, (struct sockaddr*)&client_address, &addr_size);
+			
+			 //checkTimeout
+		        timeW8();
+     	 	        alarm(5);
+        		timeW82();
+        		alarm(1);
+        		if(isTimeout==1){
+               			return 1;
+        		}
+
+
 			if(checkOpcode(ack)==5){
 				//error
 				char errMessage[128];

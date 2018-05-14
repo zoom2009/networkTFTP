@@ -9,6 +9,36 @@
 
 //TFTP Client
 
+int isTimeout = -1;
+
+static void timeOut(int id){
+        printf("!!!isTimeout!!!\n");
+        isTimeout = 1;
+}
+static void goNext(int id){
+        //printf("goNext\n");
+}
+
+void timeW8(){
+        int p;
+        char buf[100];
+        struct sigaction act;
+        act.sa_handler=timeOut;
+        sigemptyset(&act.sa_mask);
+        act.sa_flags=0;
+        sigaction(SIGALRM,&act,0);
+}
+
+void timeW82(){
+        int p;
+        char buf[100];
+        struct sigaction act;
+        act.sa_handler=goNext;
+        sigemptyset(&act.sa_mask);
+        act.sa_flags=0;
+        sigaction(SIGALRM,&act,0);
+}
+
 void encodeErr(char ep[4], short int errMessage){
         short int tmp = htons(5);
         memcpy(ep, &tmp, 2);
@@ -88,6 +118,17 @@ int main(){
 	char dp[516], data[512];
 	short int opcode, blockno;
 	int r = recvfrom(client_socket, dp, 516, 0, (struct sockaddr*)0, (int*)0);
+	
+	//checkTimeout
+        timeW8();
+        alarm(5);
+        timeW82();
+        alarm(1);
+        if(isTimeout==1){
+               return 1;
+        }
+
+
 	printf("r = %d\n",r);
 	if(checkOpcode(dp)==5){
 		//error
@@ -121,6 +162,17 @@ int main(){
 			printf("send ack block %d\n", blockno2);
 	
 			r = recvfrom(client_socket, dp, 516, 0, (struct sockaddr*)0, (int*)0);
+		
+			 //checkTimeout
+        		timeW8();
+        		alarm(5);
+        		timeW82();
+        		alarm(1);
+        		if(isTimeout==1){
+               			return 1;
+		        }
+
+
 			printf("r = %d\n", r);
 			if(checkOpcode(dp)==5){
 				//error
