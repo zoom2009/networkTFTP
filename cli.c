@@ -117,11 +117,14 @@ int main(){
 
 	char dp[516], data[512];
 	short int opcode, blockno;
+
+	//create timeout
+	timeW8();
+        alarm(5);
+
 	int r = recvfrom(client_socket, dp, 516, 0, (struct sockaddr*)0, (int*)0);
 	
-	//checkTimeout
-        timeW8();
-        alarm(5);
+	//calcelTimeout and checkTimeout
         timeW82();
         alarm(1);
         if(isTimeout==1){
@@ -161,11 +164,13 @@ int main(){
 			sendto(client_socket, ack, 4, 0, (struct sockaddr*)&server_address, sizeof(server_address));
 			printf("send ack block %d\n", blockno2);
 	
+
+			//create timeout
+			timeW8();
+                        alarm(5);
 			r = recvfrom(client_socket, dp, 516, 0, (struct sockaddr*)0, (int*)0);
 		
-			 //checkTimeout
-        		timeW8();
-        		alarm(5);
+			//cancelTimeout and checkTimeout
         		timeW82();
         		alarm(1);
         		if(isTimeout==1){

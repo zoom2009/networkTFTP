@@ -111,11 +111,14 @@ int main(){
 
 	socklen_t addr_size = sizeof(client_address);
 	char rd[139];
-	int r = recvfrom(server_socket, rd, 139, 0, (struct sockaddr*)&client_address, &addr_size);
 
-	//checkTimeout
+	//create timeout
 	timeW8();
         alarm(5);
+
+	int r = recvfrom(server_socket, rd, 139, 0, (struct sockaddr*)&client_address, &addr_size);
+
+	//cancelTimeout and checkTimeout
         timeW82();
         alarm(1);
         if(isTimeout==1){
@@ -165,11 +168,13 @@ int main(){
 			char ack[4];
 			short int opcode2;
 			short int blockno2;
+
+			//create timeout
+			timeW8();
+                        alarm(5);
 			recvfrom(server_socket, ack, 4, 0, (struct sockaddr*)&client_address, &addr_size);
 			
-			 //checkTimeout
-		        timeW8();
-     	 	        alarm(5);
+			//cancelTimeout and checkTimeout
         		timeW82();
         		alarm(1);
         		if(isTimeout==1){
